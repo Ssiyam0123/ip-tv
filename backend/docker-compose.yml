@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: iptv-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: iptv
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      target: production
+    container_name: iptv-backend
+    ports:
+      - '4000:4000'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/iptv
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-change-me}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-change-me}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

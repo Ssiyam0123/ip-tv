@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IPTV</string>
+    <string name="app_description">Live TV and sports scores</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_scores">Scores</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Auth -->
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Create Account</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="continue_as_guest">Continue as Guest</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="display_name">Display Name</string>
+
+    <!-- Home -->
+    <string name="live_scores">Live Scores</string>
+    <string name="all_channels">All Channels</string>
+    <string name="search_channels">Search channels</string>
+    <string name="no_channels_found">No channels found</string>
+
+    <!-- Player -->
+    <string name="loading_stream">Loading stream…</string>
+    <string name="retrying_stream">Retrying…</string>
+    <string name="channel_offline">Channel Offline</string>
+    <string name="no_playable_source">No playable source</string>
+
+    <!-- Scores -->
+    <string name="all_sports">All Sports</string>
+    <string name="football">Football</string>
+    <string name="cricket">Cricket</string>
+    <string name="live">Live</string>
+    <string name="scheduled">Scheduled</string>
+    <string name="finished">Finished</string>
+
+    <!-- Favorites -->
+    <string name="my_favorites">My Favorites</string>
+    <string name="sign_in_to_save_favorites">Sign in to save favorites</string>
+    <string name="add_favorite">Add to favorites</string>
+    <string name="remove_favorite">Remove from favorites</string>
+
+    <!-- Settings -->
+    <string name="account">Account</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="delete_account_confirm">Are you sure? This cannot be undone.</string>
+    <string name="member_since">Member since</string>
+
+    <!-- States -->
+    <string name="loading">Loading…</string>
+    <string name="error_occurred">Something went wrong</string>
+    <string name="tap_to_retry">Tap to retry</string>
+    <string name="offline">You are offline</string>
+    <string name="offline_description">Some features may be unavailable</string>
+    <string name="empty_state">Nothing here yet</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_channel_logo">Channel logo</string>
+    <string name="cd_team_logo">Team logo</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_pause">Pause</string>
+    <string name="cd_favorite">Toggle favorite</string>
+    <string name="cd_search">Search</string>
+</resources>

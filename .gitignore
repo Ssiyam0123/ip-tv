@@ -1,0 +1,25 @@
+# Node/Next.js/React dependencies and builds
+node_modules/
+.next/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+
+# Android/Gradle builds and settings
+.gradle/
+.kotlin/
+local.properties
+capture.webp
+*.apk
+*.aar
+app/build/
+mobile/build/
+mobile/app/build/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

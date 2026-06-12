@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  displayName   String?
+  avatarUrl     String?
+  role          String   @default("user") // user | admin
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  authIdentities AuthIdentity[]
+  refreshSessions RefreshSession[]
+  favorites      Favorite[]
+}
+
+model AuthIdentity {
+  id        String   @id @default(uuid()) @db.Uuid
+  provider  String   // "local" | "google"
+  providerId String? // external ID from Google
+  passwordHash String? // Argon2id hash for local auth
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([provider, providerId])
+  @@index([userId])
+}
+
+model RefreshSession {
+  id            String   @id @default(uuid()) @db.Uuid
+  tokenFamily   String   @db.Uuid
+  refreshToken  String   @unique
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceInfo    String?
+  ipAddress     String?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenFamily])
+}
+
+// ─── Catalog ────────────────────────────────────────────────────────────────
+
+model Category {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique
+  slug      String    @unique
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  channels Channel[]
+}
+
+model Provider {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  baseUrl     String?
+  credentials String?  // encrypted, never logged
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  streamSources StreamSource[]
+  syncRuns      SyncRun[]
+}
+
+model Channel {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  slug        String    @unique
+  description String?
+  logoUrl     String?
+  categoryId  String    @db.Uuid
+  category    Category  @relation(fields: [categoryId], references: [id])
+  status      String    @default("active") // active | degraded | offline | disabled
+  language    String?
+  countryCode String?
+  externalId  String?   // provider's identifier
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  streamSources      StreamSource[]
+  favorites          Favorite[]
+  streamHealthChecks StreamHealthCheck[]
+
+  @@index([status, categoryId, title])
+  @@index([slug])
+  @@index([externalId])
+}
+
+model StreamSource {
+  id             String   @id @default(uuid()) @db.Uuid
+  channelId      String   @db.Uuid
+  channel        Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  providerId     String   @db.Uuid
+  provider       Provider @relation(fields: [providerId], references: [id])
+  url            String
+  quality        String   @default("auto") // auto | 240p | 360p | 480p | 720p | 1080p | 4k
+  priority       Int      @default(0)
+  status         String   @default("active") // active | degraded | offline | disabled
+  licenseStatus  String?  // authorized, pending_review, quarantined
+  attribution    String?
+  authorizationNotes String?
+  reviewedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  streamHealthChecks StreamHealthCheck[]
+
+  @@index([channelId, priority])
+  @@index([providerId])
+}
+
+model StreamHealthCheck {
+  id            String   @id @default(uuid()) @db.Uuid
+  streamSourceId String  @db.Uuid
+  streamSource  StreamSource @relation(fields: [streamSourceId], references: [id], onDelete: Cascade)
+  channelId     String   @db.Uuid
+  channel       Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  httpStatus    Int?
+  latencyMs     Int?
+  contentType   String?
+  failureReason String?
+  checkedAt     DateTime @default(now())
+
+  @@index([streamSourceId, checkedAt])
+  @@index([channelId, checkedAt])
+}
+
+// ─── Favorites ──────────────────────────────────────────────────────────────
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId String   @db.Uuid
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, channelId])
+  @@index([userId])
+}
+
+// ─── Scores ─────────────────────────────────────────────────────────────────
+
+model Competition {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  sport     String   // football | cricket
+  country   String?
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matches Match[]
+}
+
+model Team {
+  id        String  @id @default(uuid()) @db.Uuid
+  name      String
+  shortName String?
+  logoUrl   String?
+  sport     String  // football | cricket
+  externalId String?
+
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+
+  @@index([sport])
+}
+
+model Match {
+  id             String          @id @default(uuid()) @db.Uuid
+  competitionId  String          @db.Uuid
+  competition    Competition     @relation(fields: [competitionId], references: [id])
+  homeTeamId     String          @db.Uuid
+  homeTeam       Team            @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId     String          @db.Uuid
+  awayTeam       Team            @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  state          String          // scheduled | live | finished | postponed | cancelled
+  sport          String          // football | cricket
+  startTime      DateTime
+  homeScore      Int?
+  awayScore      Int?
+  currentPeriod  String?         // 1H, 2H, HT, ET, FULL, inning1, inning2, etc.
+  externalId     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  snapshots MatchSnapshot[]
+
+  @@index([sport, state, startTime])
+  @@index([competitionId])
+  @@index([externalId])
+}
+
+model MatchSnapshot {
+  id        String   @id @default(uuid()) @db.Uuid
+  matchId   String   @db.Uuid
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  version   Int
+  homeScore Int?
+  awayScore Int?
+  state     String
+  period    String?
+  data      Json?    // full provider-specific match data
+  capturedAt DateTime @default(now())
+
+  @@unique([matchId, version])
+  @@index([matchId, version])
+}
+
+// ─── Admin ──────────────────────────────────────────────────────────────────
+
+model SyncRun {
+  id             String   @id @default(uuid()) @db.Uuid
+  providerId     String?  @db.Uuid
+  provider       Provider? @relation(fields: [providerId], references: [id])
+  status         String   // running | completed | failed
+  channelsFound  Int      @default(0)
+  channelsAdded  Int      @default(0)
+  channelsUpdated Int     @default(0)
+  failures       Int      @default(0)
+  errorMessage   String?
+  durationMs     Int?
+  startedAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  @@index([startedAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  action    String
+  entity    String
+  entityId  String?
+  userId    String?  @db.Uuid
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}

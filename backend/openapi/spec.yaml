@@ -1,0 +1,99 @@
+openapi: 3.1.0
+info:
+  title: IPTV Streaming API
+  description: Authorized live sports/news TV streaming backend API
+  version: 0.1.0
+  contact:
+    name: IPTV Team
+
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local development
+
+paths:
+  /health/live:
+    get:
+      summary: Liveness check
+      operationId: healthLive
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivenessResponse'
+
+  /health/ready:
+    get:
+      summary: Readiness check
+      operationId: healthReady
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready
+
+components:
+  schemas:
+    LivenessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        uptime:
+          type: integer
+          description: Seconds since startup
+        timestamp:
+          type: string
+          format: date-time
+
+    ReadinessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, down]
+        uptime:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        checks:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/HealthCheck'
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, down]
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+              format: uuid
+            details:
+              type: object
+          required: [code, message, requestId]
+      required: [error]
