@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: iptv-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run db:generate && npm run build
+    startCommand: npx prisma migrate deploy && npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: iptv-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+databases:
+  - name: iptv-db
+    plan: free
+    postgresMajorVersion: 15
