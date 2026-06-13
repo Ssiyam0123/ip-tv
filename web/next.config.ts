@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
               "media-src 'self' data: blob: https: http:",
               "connect-src 'self' https: http: ws: wss:",
               "frame-src 'self' https:",
-              "font-src 'self' data:",
+              "font-src 'self' data: https://fonts.gstatic.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -46,8 +46,16 @@ const nextConfig: NextConfig = {
             value: 'nosniff',
           },
           {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), picture-in-picture=(self), fullscreen=(self)',
           },
         ],
       },

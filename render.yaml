@@ -1,24 +1,56 @@
 services:
+  # ─── Backend API ────────────────────────────────────────────────────────────
   - type: web
     name: iptv-backend
     env: node
     plan: free
     rootDir: backend
     buildCommand: npm install && npm run db:generate && npm run build
-    startCommand: npx prisma migrate deploy && npm run start
+    startCommand: npx prisma migrate deploy && npm run db:seed && npm run start
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 4000
+      - key: HOST
+        value: 0.0.0.0
       - key: DATABASE_URL
         fromDatabase:
           name: iptv-db
           property: connectionString
-      - key: JWT_ACCESS_SECRET
+      - key: ACCESS_TOKEN_SECRET
         generateValue: true
-      - key: JWT_REFRESH_SECRET
+      - key: REFRESH_TOKEN_SECRET
         generateValue: true
+      - key: ACCESS_TOKEN_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        value: https://iptv-web.onrender.com
+      - key: LOG_LEVEL
+        value: info
+      - key: SYNC_INTERVAL_MS
+        value: 3600000
+
+  # ─── Web Frontend ────────────────────────────────────────────────────────────
+  - type: web
+    name: iptv-web
+    env: node
+    plan: free
+    rootDir: web
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://iptv-backend.onrender.com/api/v1
+      - key: NEXT_PUBLIC_WS_BASE_URL
+        value: https://iptv-backend.onrender.com
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://iptv-web.onrender.com
 
 databases:
   - name: iptv-db

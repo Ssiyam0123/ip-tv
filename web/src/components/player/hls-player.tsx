@@ -12,6 +12,7 @@ import {
   Loader2,
   AlertTriangle,
   RefreshCw,
+  PictureInPicture2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PlaybackSource } from '@/lib/api.types';
@@ -33,6 +34,8 @@ export function HlsPlayer({ sources, channelName, onSourceChange }: HlsPlayerPro
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPip, setIsPip] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
@@ -43,9 +46,19 @@ export function HlsPlayer({ sources, channelName, onSourceChange }: HlsPlayerPro
   const retryCountRef = useRef(0);
   const sourceIndexRef = useRef(0);
   const attemptPlaybackRef = useRef<(sourceIndex: number) => void>(() => {});
+  const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const MAX_RETRIES = 2;
   const RETRY_DELAY = 2000;
+
+  // Auto-hide controls after 3 seconds (mobile friendly)
+  const showControlsTemporarily = useCallback(() => {
+    setShowControls(true);
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    controlsTimerRef.current = setTimeout(() => {
+      if (playerState === 'playing') setShowControls(false);
+    }, 3000);
+  }, [playerState]);
 
   const currentSource = sources[currentSourceIndex];
 
@@ -160,13 +173,41 @@ export function HlsPlayer({ sources, channelName, onSourceChange }: HlsPlayerPro
     return cleanupHls;
   }, [sources, attemptPlayback, cleanupHls]);
 
-  // Handle fullscreen changes
+  // Handle fullscreen changes + orientation lock
   useEffect(() => {
     const handleFsChange = () => {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
+      const entering = document.fullscreenElement === containerRef.current;
+      setIsFullscreen(entering);
+
+      // Lock orientation to landscape on mobile when entering fullscreen
+      if (entering && screen.orientation && 'lock' in screen.orientation) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (screen.orientation as any).lock('landscape').catch(() => {});
+      } else if (!entering && screen.orientation && 'unlock' in screen.orientation) {
+        screen.orientation.unlock();
+      }
     };
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  // Handle PiP changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onEnterPiP = () => setIsPip(true);
+    const onLeavePiP = () => setIsPip(false);
+    video.addEventListener('enterpictureinpicture', onEnterPiP);
+    video.addEventListener('leavepictureinpicture', onLeavePiP);
+    return () => {
+      video.removeEventListener('enterpictureinpicture', onEnterPiP);
+      video.removeEventListener('leavepictureinpicture', onLeavePiP);
+    };
+  }, []);
+
+  // Clean up controls timer on unmount
+  useEffect(() => {
+    return () => { if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current); };
   }, []);
 
   const togglePlay = () => {
@@ -204,6 +245,20 @@ export function HlsPlayer({ sources, channelName, onSourceChange }: HlsPlayerPro
       await document.exitFullscreen();
     } else {
       await containerRef.current.requestFullscreen();
+    }
+  };
+
+  const togglePiP = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else if (document.pictureInPictureEnabled) {
+        await video.requestPictureInPicture();
+      }
+    } catch (err) {
+      console.warn('PiP not supported:', err);
     }
   };
 
@@ -259,6 +314,8 @@ export function HlsPlayer({ sources, channelName, onSourceChange }: HlsPlayerPro
         'relative aspect-video rounded-xl overflow-hidden bg-black group',
         'ring-1 ring-border/50',
       )}
+      onTouchStart={showControlsTemporarily}
+      onMouseMove={showControlsTemporarily}
     >
       {/* Video element */}
       <video
@@ -300,8 +357,8 @@ export function HlsPlayer({ sources, channelName, onSourceChange }: HlsPlayerPro
       <div
         className={cn(
           'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-10',
-          'opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-          playerState === 'paused' && 'opacity-100',
+          'transition-opacity duration-300',
+          showControls || playerState === 'paused' ? 'opacity-100' : 'opacity-0',
         )}
       >
 
@@ -404,6 +461,21 @@ export function HlsPlayer({ sources, channelName, onSourceChange }: HlsPlayerPro
               <span className="text-xs text-white/50 hidden sm:inline">
                 Source {currentSourceIndex + 1}/{sources.length}
               </span>
+            )}
+
+            {/* Picture in Picture */}
+            {typeof document !== 'undefined' && 'pictureInPictureEnabled' in document && (
+              <button
+                onClick={togglePiP}
+                className={cn(
+                  'p-1.5 transition-colors',
+                  isPip ? 'text-primary' : 'text-white/80 hover:text-white',
+                )}
+                aria-label="Picture in Picture"
+                title="Picture in Picture"
+              >
+                <PictureInPicture2 className="h-5 w-5" />
+              </button>
             )}
 
             {/* Fullscreen */}

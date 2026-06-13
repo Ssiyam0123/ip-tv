@@ -11,7 +11,7 @@ import { PlaybackError } from '@/components/player/playback-error';
 import { MatchStatusBadge } from '@/components/scores/match-status-badge';
 import { ErrorState } from '@/components/ui/error-state';
 import { MatchDetailSkeleton } from '@/components/ui/skeletons';
-import { ArrowLeft, Clock, WifiOff, Tv, Server, Wifi } from 'lucide-react';
+import { ArrowLeft, Clock, WifiOff, Tv, Server, Wifi, Trophy } from 'lucide-react';
 import { cn, formatScore } from '@/lib/utils';
 import type { Match, MatchUpdate, MatchState } from '@/lib/api.types';
 
