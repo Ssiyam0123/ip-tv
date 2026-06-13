@@ -20,15 +20,15 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/api/v1\"")
-        buildConfigField("String", "WS_BASE_URL", "\"http://10.0.2.2:4000\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://iptv-backend-y7dn.onrender.com/api/v1\"")
+        buildConfigField("String", "WS_BASE_URL", "\"https://iptv-backend-y7dn.onrender.com\"")
     }
 
     buildTypes {
         debug {
             isMinifyEnabled = false
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/api/v1\"")
-            buildConfigField("String", "WS_BASE_URL", "\"http://10.0.2.2:4000\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://iptv-backend-y7dn.onrender.com/api/v1\"")
+            buildConfigField("String", "WS_BASE_URL", "\"https://iptv-backend-y7dn.onrender.com\"")
         }
         release {
             isMinifyEnabled = true
@@ -36,8 +36,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://api.iptv.app/api/v1\"")
-            buildConfigField("String", "WS_BASE_URL", "\"https://api.iptv.app\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://iptv-backend-y7dn.onrender.com/api/v1\"")
+            buildConfigField("String", "WS_BASE_URL", "\"https://iptv-backend-y7dn.onrender.com\"")
         }
     }
 
