@@ -1,5 +1,5 @@
-// SportStream Service Worker — v1
-const CACHE_VERSION = 'sportstream-v1';
+// SportStream Service Worker — v2
+const CACHE_VERSION = 'sportstream-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 
