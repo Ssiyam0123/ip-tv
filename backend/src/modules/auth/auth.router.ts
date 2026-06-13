@@ -248,7 +248,7 @@ export function createAuthRouter(prisma: PrismaClient) {
       }
 
       // Check if identity already exists
-      let identity = await prisma.authIdentity.findUnique({
+      const identity = await prisma.authIdentity.findUnique({
         where: { provider_providerId: { provider: 'google', providerId: googleSub } },
         include: { user: true },
       });

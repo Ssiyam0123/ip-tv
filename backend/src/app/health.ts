@@ -8,7 +8,7 @@ interface HealthStatus {
   checks: Record<string, { status: string; message?: string }>;
 }
 
-let startupTime = Date.now();
+const startupTime = Date.now();
 
 export function createHealthRouter(prisma: PrismaClient) {
   const router = Router();

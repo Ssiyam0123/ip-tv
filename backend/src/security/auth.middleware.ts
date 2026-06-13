@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 import type { Request, Response, NextFunction } from 'express';
 import { authService } from '../modules/auth/auth.service';
 import { UnauthorizedError, ForbiddenError } from '../app/errors';
