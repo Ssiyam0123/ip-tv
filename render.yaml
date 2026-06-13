@@ -46,9 +46,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_BASE_URL
-        value: https://iptv-backend.onrender.com/api/v1
+        value: https://iptv-backend-y7dn.onrender.com/api/v1
       - key: NEXT_PUBLIC_WS_BASE_URL
-        value: https://iptv-backend.onrender.com
+        value: https://iptv-backend-y7dn.onrender.com
       - key: NEXT_PUBLIC_SITE_URL
         value: https://iptv-web-wbr1.onrender.com
 
